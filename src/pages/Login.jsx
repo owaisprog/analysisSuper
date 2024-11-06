@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios'; // Ensure axios is installed
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Cookies from 'js-cookie';
-// import Logo from '../../public/Logo.png';
+import { CircularProgress } from "@mui/material";
 import { IoEye, IoEyeOff } from "react-icons/io5"; // Import eye icons
 
 function Login() {
@@ -29,17 +29,7 @@ function Login() {
       if (response.data.role === 'superAdmin') {
         Cookies.set('SuperToken', response.data.token, { expires: 7 });
         navigate('/');
-      } else if (response.data.role === 'Admin') {
-        Cookies.set('authToken', response.data.token, { expires: 7 });
-        Cookies.set('companyName', response.data.companyName, { expires: 7 });
-        Cookies.set('adminId', response.data.adminId, { expires: 7 });
-        navigate(`/Admin/${replaceSpacesWithHyphens(response.data.companyName)}`);
-      } else if (response.data.role === 'User') {
-        Cookies.set('userToken', response.data.token, { expires: 7 });
-        Cookies.set('userId', response.data.user.id, { expires: 7 });
-        Cookies.set('companyName', response.data.user.companyName, { expires: 7 });
-        navigate(`/${replaceSpacesWithHyphens(response.data.user.Admin.companyName)}/${replaceSpacesWithHyphens(response.data.user.firstName)}`);
-      }
+      } 
     } catch (error) {
       setError(error.response?.data?.error || 'An error occurred');
     } finally {
@@ -117,7 +107,8 @@ function Login() {
                       className="border bg-black text-white rounded-md px-2 py-1"
                       disabled={loading}
                     >
-                      {loading ? 'Loading...' : 'Submit'}
+                  
+                      {loading ? <CircularProgress size={20} className="mx-8" sx={{ color: 'white', margin: "1px 25px" }} /> : 'Submit'}
                     </button>
                   </div>
                 </form>

@@ -4,8 +4,9 @@ import SuperAdminNavbar from '../components/homepage/SuperAdminNavbar';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AllQueries from '../components/AllQueries';
 
-function Home() {
+function Queries() {
     const [queries,setQueries] = useState(0) 
 
     const navigate = useNavigate();
@@ -40,11 +41,11 @@ function Home() {
             </div>
 
             <div>
-                <AllAdmins />
+                <AllQueries />
             </div>
 
         </div>
     );
 }
 
-export default Home;
+export default Queries
