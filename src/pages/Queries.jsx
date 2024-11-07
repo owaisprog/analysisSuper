@@ -25,10 +25,8 @@ function Queries() {
         const response = await axios.get(
           "https://gptbackend-xp1u.onrender.com/api/numberOfAllMessages"
         );
-        console.log(response.data)
         setQueries(response.data);
       } catch (error) {
-        console.error("Error fetching admin data:", error);
       }
     };
 

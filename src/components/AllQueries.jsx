@@ -18,7 +18,6 @@ const AllQueries = () => {
         setQueries(response.data);
         setFilteredQueries(response.data);
       } catch (error) {
-        console.error('Error fetching admin data:', error);
       }
     };
     fetchAdminData();

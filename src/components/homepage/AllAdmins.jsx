@@ -55,7 +55,6 @@ function AllAdmins() {
         );
         setAdminData(response.data);
       } catch (error) {
-        console.error("Error fetching admin data:", error);
       }
     };
 
@@ -148,7 +147,6 @@ function AllAdmins() {
       handleCloseModel();
     } catch (error) {
       setError("An error occurred while updating admin.");
-      console.error("Error updating admin:", error);
     } finally {
       setLoading(false);
     }
@@ -164,9 +162,7 @@ function AllAdmins() {
           `https://gptbackend-xp1u.onrender.com/api/deleteAdmin/${adminId}`
         );
         setGetAdminData(getAdminData + 1);
-        console.log("Admin deleted successfully");
       } catch (error) {
-        console.error("Error deleting admin:", error);
         setError("Failed to delete admin. Please try again.");
       }
     }
@@ -196,7 +192,6 @@ function AllAdmins() {
       handleCloseModel();
     } catch (error) {
       setError("An error occurred");
-      console.error(`Error creating admin:`, error);
     } finally {
       setLoading(false);
     }
@@ -210,7 +205,6 @@ function AllAdmins() {
       );
       const adminDataResponse = response.data;
       if (!adminDataResponse) {
-        console.error("Admin info is missing.");
         return;
       }
 
@@ -270,10 +264,8 @@ function AllAdmins() {
 
       // Save the PDF
       doc.save(`admin_${adminId}.pdf`);
-      console.log(`PDF for admin ${adminId} downloaded successfully.`);
     } catch (error) {
       setError("Failed to download PDF. Please try again.");
-      console.error("Error fetching or generating PDF:", error);
     } finally {
       setLoadingDownload((prevState) => ({ ...prevState, [adminId]: false }));
     }
