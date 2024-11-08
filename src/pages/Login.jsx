@@ -19,17 +19,21 @@ function Login() {
     event.preventDefault();
     setLoading(true);
 
-    function replaceSpacesWithHyphens(str) {
-      return str.replace(/\s/g, '-');
-    }
+    // Trim leading and trailing spaces from email and password
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
 
     try {
-      const response = await axios.post('https://gptbackend-xp1u.onrender.com/api/login', { email, password });
+      const response = await axios.post('https://gptbackend-xp1u.onrender.com/api/login', {
+        email: trimmedEmail,
+        password: trimmedPassword
+      });
 
       if (response.data.role === 'superAdmin') {
         Cookies.set('SuperToken', response.data.token, { expires: 7 });
         navigate('/');
       } 
+      // You can handle other roles or responses here if needed
     } catch (error) {
       setError(error.response?.data?.error || 'An error occurred');
     } finally {
@@ -43,9 +47,9 @@ function Login() {
   };
 
   return (
-    <div className='bg-gray-100 min-h-screen'>
-      <div className='w-[200px] h-[200px]'>
-        <img src="/LOGO.png" alt="Logo" />
+    <div className='bg-gray-100 min-h-screen flex flex-col items-center justify-center'>
+      <div className='w-[200px] h-[200px] mb-8'>
+        <img src="/LOGO.png" alt="Logo" className="w-full h-full object-contain" />
       </div>
 
       <div className="bg-gray-100 py-6 flex flex-col sm:py-12">
@@ -63,15 +67,23 @@ function Login() {
                       autoComplete="off"
                       id="email"
                       name="email"
-                      type="text"
+                      type="email" // Changed to email for better validation
                       className="peer placeholder-transparent h-10 w-[400px] border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-rose-600"
                       placeholder="Email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      required
                     />
                     <label
                       htmlFor="email"
-                      className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                      className="absolute left-0 -top-3.5 text-gray-600 text-sm 
+                                 peer-placeholder-shown:text-base 
+                                 peer-placeholder-shown:text-gray-440 
+                                 peer-placeholder-shown:top-2 
+                                 transition-all 
+                                 peer-focus:-top-3.5 
+                                 peer-focus:text-gray-600 
+                                 peer-focus:text-sm"
                     >
                       Email Address
                     </label>
@@ -82,33 +94,40 @@ function Login() {
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"} // Conditionally change input type
-                      className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-rose-600"
+                      className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-rose-600 pr-10" // Added padding-right for the icon
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      required
                     />
                     <label
                       htmlFor="password"
-                      className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                      className="absolute left-0 -top-3.5 text-gray-600 text-sm 
+                                 peer-placeholder-shown:text-base 
+                                 peer-placeholder-shown:text-gray-440 
+                                 peer-placeholder-shown:top-2 
+                                 transition-all 
+                                 peer-focus:-top-3.5 
+                                 peer-focus:text-gray-600 
+                                 peer-focus:text-sm"
                     >
                       Password
                     </label>
                     <span
                       onClick={togglePasswordVisibility}
-                      className="absolute right-2 top-2 cursor-pointer"
+                      className="absolute right-2 top-2 cursor-pointer text-gray-600"
                     >
-                      {showPassword ? <IoEyeOff /> : <IoEye />}
+                      {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
                     </span>
                   </div>
                   {error && <p className="text-red-500">{error}</p>}
                   <div className="relative">
                     <button
                       type="submit"
-                      className="border bg-black text-white rounded-md px-2 py-1"
+                      className="border bg-black text-white rounded-md px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={loading}
                     >
-                  
-                      {loading ? <CircularProgress size={20} className="mx-8" sx={{ color: 'white', margin: "1px 25px" }} /> : 'Submit'}
+                      {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Submit'}
                     </button>
                   </div>
                 </form>
