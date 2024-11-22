@@ -51,7 +51,7 @@ function AllAdmins() {
     const fetchAdminData = async () => {
       try {
         const response = await axios.get(
-          "https://gptbackend-xp1u.onrender.com/api/getAllAdmins"
+          "https://api.talentspy.ai/api/getAllAdmins"
         );
         setAdminData(response.data);
       } catch (error) {
@@ -120,7 +120,7 @@ function AllAdmins() {
       if (password !== originalPassword) {
         // Update password
         await axios.put(
-          `https://gptbackend-xp1u.onrender.com/api/editPassword/${editAdmin.id}`,
+          `https://api.talentspy.ai/api/editPassword/${editAdmin.id}`,
           { password },
           {
             headers: {
@@ -133,7 +133,7 @@ function AllAdmins() {
       if (userMaxLimit !== originalUserMaxLimit) {
         // Update userMaxLimit
         await axios.put(
-          `https://gptbackend-xp1u.onrender.com/api/changeUserMaxLimit/${editAdmin.id}`,
+          `https://api.talentspy.ai/api/changeUserMaxLimit/${editAdmin.id}`,
           { userMaxLimit },
           {
             headers: {
@@ -159,7 +159,7 @@ function AllAdmins() {
     if (confirmDelete) {
       try {
         await axios.delete(
-          `https://gptbackend-xp1u.onrender.com/api/deleteAdmin/${adminId}`
+          `https://api.talentspy.ai/api/deleteAdmin/${adminId}`
         );
         setGetAdminData(getAdminData + 1);
       } catch (error) {
@@ -180,7 +180,7 @@ function AllAdmins() {
     };
     try {
       await axios.post(
-        "https://gptbackend-xp1u.onrender.com/api/createAdmin",
+        "https://api.talentspy.ai/api/createAdmin",
         data,
         {
           headers: {
@@ -201,7 +201,7 @@ function AllAdmins() {
     setLoadingDownload((prevState) => ({ ...prevState, [adminId]: true }));
     try {
       const response = await axios.get(
-        `https://gptbackend-xp1u.onrender.com/api/getAdminInfo/${adminId}`
+        `https://api.talentspy.ai/api/getAdminInfo/${adminId}`
       );
       const adminDataResponse = response.data;
       if (!adminDataResponse) {

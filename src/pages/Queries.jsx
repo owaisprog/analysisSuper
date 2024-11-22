@@ -23,7 +23,7 @@ function Queries() {
     const fetchQueries = async () => {
       try {
         const response = await axios.get(
-          "https://gptbackend-xp1u.onrender.com/api/numberOfAllMessages"
+          "https://api.talentspy.ai/api/numberOfAllMessages"
         );
         setQueries(response.data);
       } catch (error) {

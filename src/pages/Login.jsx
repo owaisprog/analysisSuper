@@ -24,7 +24,7 @@ function Login() {
     const trimmedPassword = password.trim();
 
     try {
-      const response = await axios.post('https://gptbackend-xp1u.onrender.com/api/login', {
+      const response = await axios.post('https://api.talentspy.ai/api/login', {
         email: trimmedEmail,
         password: trimmedPassword
       });

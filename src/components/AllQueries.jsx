@@ -13,7 +13,7 @@ const AllQueries = () => {
     const fetchAdminData = async () => {
       try {
         const response = await axios.get(
-          'https://gptbackend-xp1u.onrender.com/api/getAllMessages'
+          'https://api.talentspy.ai/api/getAllMessages'
         );
         setQueries(response.data);
         setFilteredQueries(response.data);
