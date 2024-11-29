@@ -4,6 +4,7 @@ import axios from "axios";
 import { RxCross2 } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { IoEye, IoEyeOff } from "react-icons/io5"; // Import eye icons
 import {
   Table,
   TableBody,
@@ -14,9 +15,9 @@ import {
   Paper,
   IconButton,
   CircularProgress,
+  Modal,
 } from "@mui/material";
 import { IoMdAdd } from "react-icons/io";
-import { FaArrowUpShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiDownloadCloud, FiEdit2 } from "react-icons/fi";
 import jsPDF from "jspdf"; // Default import
@@ -33,19 +34,34 @@ function AllAdmins() {
   }, [navigate]);
 
   const [openModel, setOpenModel] = useState(false);
+  const [deleteOpenModel, setDeleteOpenModel] = useState(false);
+  const [deleteId, setDeleteId] = useState();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userMaxLimit, setUserMaxLimit] = useState("");
+  const [interviewUserMaxLimit, setInterviewUserMaxLimit] = useState("");
   const [originalPassword, setOriginalPassword] = useState("");
   const [originalUserMaxLimit, setOriginalUserMaxLimit] = useState("");
+  const [originalInterviewUserMaxLimit, setOriginalInterviewUserMaxLimit] =
+    useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [adminData, setAdminData] = useState([]);
   const [getAdminData, setGetAdminData] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [editAdmin, setEditAdmin] = useState(null);
   const [loadingDownload, setLoadingDownload] = useState({});
+  const [mainloading, setMainLoading] = useState(true);
+
+  // State to manage password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Function to replace hyphens with spaces
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -53,9 +69,9 @@ function AllAdmins() {
         const response = await axios.get(
           "https://api.talentspy.ai/api/getAllAdmins"
         );
+        setMainLoading(false);
         setAdminData(response.data);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchAdminData();
@@ -65,8 +81,10 @@ function AllAdmins() {
     setEmail("");
     setPassword("");
     setUserMaxLimit("");
+    setInterviewUserMaxLimit("");
     setOriginalPassword("");
     setOriginalUserMaxLimit("");
+    setOriginalInterviewUserMaxLimit("");
   };
 
   const handleSearch = (e) => {
@@ -98,17 +116,28 @@ function AllAdmins() {
       setEmail(admin.email);
       setPassword(admin.password);
       setUserMaxLimit(admin.userMaxLimit || admin.users || "");
+      setInterviewUserMaxLimit(admin.interviewUserMaxLimit || "");
       setOriginalPassword(admin.password);
       setOriginalUserMaxLimit(admin.userMaxLimit || admin.users || "");
+      setOriginalInterviewUserMaxLimit(admin.interviewUserMaxLimit);
     } else {
       resetFormFields();
     }
+  };
+  const handleOpenDeleteModel = (id) => {
+    setDeleteId(id);
+    setDeleteOpenModel(true);
   };
 
   const handleCloseModel = () => {
     setOpenModel(false);
     resetFormFields();
     setEditAdmin(null);
+  };
+
+  const handleCloseDeleteModel = () => {
+    setDeleteId(null);
+    setDeleteOpenModel(false);
   };
 
   const handleEditSubmit = async (e) => {
@@ -143,6 +172,19 @@ function AllAdmins() {
         );
       }
 
+      if (interviewUserMaxLimit !== originalInterviewUserMaxLimit) {
+        // Update userMaxLimit
+        await axios.put(
+          `https://api.talentspy.ai/api/changeInterviewUserMaxLimit/${editAdmin.id}`,
+          { interviewUserMaxLimit },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
       setGetAdminData(getAdminData + 1);
       handleCloseModel();
     } catch (error) {
@@ -153,19 +195,22 @@ function AllAdmins() {
   };
 
   const handleDeleteAdmin = async (adminId) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this admin?"
-    );
-    if (confirmDelete) {
+    setDeleteLoading(true);
+
       try {
         await axios.delete(
           `https://api.talentspy.ai/api/deleteAdmin/${adminId}`
         );
         setGetAdminData(getAdminData + 1);
+        setDeleteLoading(false);
+        handleCloseDeleteModel();
       } catch (error) {
+        setDeleteLoading(false);
+        handleCloseDeleteModel();
+
         setError("Failed to delete admin. Please try again.");
       }
-    }
+    
   };
 
   const handleSubmit = async (e) => {
@@ -177,17 +222,14 @@ function AllAdmins() {
       email,
       password,
       userMaxLimit,
+      interviewUserMaxLimit,
     };
     try {
-      await axios.post(
-        "https://api.talentspy.ai/api/createAdmin",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.post("https://api.talentspy.ai/api/createAdmin", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       setGetAdminData(getAdminData + 1);
       handleCloseModel();
     } catch (error) {
@@ -271,76 +313,80 @@ function AllAdmins() {
     }
   };
 
-  const columns = ["ID number", "Date", "Users", "Name/Email", "Password","Max Limit", "Actions"];
+  const columns = [
+    "ID ",
+    "Date",
+    "Users",
+    "Name/Email",
+    "Password",
+    "Max Performers",
+    "Max Interviews",
+    "Actions",
+  ];
 
   return (
-    <div className="relative p-4 h-[90vh]">
-      <div className="flex justify-between items-center mt-9 mb-3 max-w-[1280px] w-[90%] mx-auto">
+    <div className="max-w-[1360px] w-[90%] mx-auto">
+      <div className="flex flex-col-reverse gap-3 w-full items-end translate-y-[-80px]">
+        <button
+          className="bg-[#047D16] hover:bg-[#0a5415] w-[197px] transition-all duration-200 text-white rounded-[20px] text-[16px] font-bold py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => handleOpenModel()}
+        >
+          <IoMdAdd size={20} className="mr-1" /> Create Admin
+        </button>
+        <button
+          className="bg-[#047D16] hover:bg-[#0a5415] w-[197px] transition-all duration-200 text-white rounded-[20px] text-[16px] font-bold py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => navigate("/queries")}
+        >
+          Inquiries
+        </button>
+      </div>
+      <div className="flex rounded-[50px] translate-y-[-80px] mx-auto border w-[30%]  bg-[#1A73E8] overflow-hidden ">
         <input
-          type="search"
-          placeholder="Search admins ..."
-          className="rounded-md transition-all duration-150 ease-in-out py-2 px-2 border border-[#555] w-[25%] outline-none text-[#333] hover:bg-[#f5f5f5]"
+          type="text"
+          placeholder="Search Admins"
+          className=" focus:text-[#222] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white border-2 border-[#1A73E8] text-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3 peer"
           value={searchTerm}
           onChange={handleSearch}
         />
-        <div className="flex gap-3">
-          <Button
-            variant="outlined"
-            onClick={() => handleOpenModel()}
-            sx={{
-              color: "black",
-              display: "flex",
-              alignItems: "center",
-              gap: "2px",
-              borderColor: "#888",
-              "&:hover": {
-                borderColor: "#888",
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
-              },
-            }}
+        <button
+          type="button"
+          className="flex items-center justify-center px-5 "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 192.904 192.904"
+            width="16px"
+            className="fill-[#fff]"
           >
-            <IoMdAdd size={20} /> Create Admin
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleSort}
-            sx={{
-              color: "black",
-              display: "flex",
-              alignItems: "center",
-              gap: "2px",
-              borderColor: "#888",
-              "&:hover": {
-                borderColor: "#888",
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
-              },
-            }}
-          >
-            Sort{" "}
-            {sortOrder === "asc" ? (
-              <FaArrowUpShortWide size={18} />
-            ) : (
-              <FaArrowUpWideShort size={18} />
-            )}
-          </Button>
-        </div>
+            <path d="m190.707 180.101-47.078-47.077c11.702-14.072 18.752-32.142 18.752-51.831C162.381 36.423 125.959 0 81.191 0 36.422 0 0 36.423 0 81.193c0 44.767 36.422 81.187 81.191 81.187 19.688 0 37.759-7.049 51.831-18.751l47.079 47.078a7.474 7.474 0 0 0 5.303 2.197 7.498 7.498 0 0 0 5.303-12.803zM15 81.193C15 44.694 44.693 15 81.191 15c36.497 0 66.189 29.694 66.189 66.193 0 36.496-29.692 66.187-66.189 66.187C44.693 147.38 15 117.689 15 81.193z"></path>
+          </svg>
+        </button>
       </div>
+
       <TableContainer
         component={Paper}
         sx={{
-          borderRadius: "10px",
-          width: "90%",
-          maxWidth: "1280px",
-          margin: "0 auto",
+          borderRadius: "20px",
+          transform: "translateY(-60px)",
+          background: "#ededed",
         }}
       >
         <Table>
-          <TableHead sx={{ bgcolor: "#f0f1f1" }}>
+          <TableHead>
             <TableRow>
-              {columns.map((column) => (
+              {columns.map((column, index) => (
                 <TableCell
                   key={column}
-                  align={column === "Actions" ? "center" : "left"}
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: "700",
+                    fontFamily: "Montserrat, sans-serif",
+                    borderBottom: "1px solid #bfbfbf", // Line between header cells
+                    borderRight:
+                      index < columns.length - 1 ? "1px solid #bfbfbf" : "none", // Line between header columns
+                    textAlign: "center", // Center text horizontally
+                    verticalAlign: "middle", // Center text vertically
+                  }}
                 >
                   {column}
                 </TableCell>
@@ -349,16 +395,64 @@ function AllAdmins() {
           </TableHead>
           <TableBody>
             {filteredAdminData.length > 0 ? (
-              filteredAdminData.map((row) => (
+              filteredAdminData.map((row, index) => (
                 <TableRow key={row.id}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    {index + 1}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
                     {new Date(row.createdAt).toLocaleDateString()} (
                     {new Date(row.createdAt).toLocaleTimeString()})
                   </TableCell>
-                  <TableCell>{row.users}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    {row.users}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    <div className="flex gap-2 justify-center">
                       {row?.adminInfo?.Logo && (
                         <img
                           src={row.adminInfo.Logo}
@@ -367,16 +461,68 @@ function AllAdmins() {
                         />
                       )}
                       <div className="flex flex-col">
-                        <h4 className="text-[#333] font-medium">
+                        <h4 className="text-[#222]">
                           {row?.adminInfo?.companyName}
                         </h4>
                         <h5 className="text-[#777]">{row.email}</h5>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{row.password}</TableCell>
-                  <TableCell>{row.userMaxLimit}</TableCell>
-                  <TableCell sx={{ color: "#555" }} align="center">
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    {row.password}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    {row.userMaxLimit}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      borderRight: "1px solid #bfbfbf", // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                  >
+                    {row.interviewUserMaxLimit}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontSize: "14px",
+                      color: "#555",
+                      fontWeight: "700",
+                      fontFamily: "Montserrat, sans-serif",
+                      borderBottom: "1px solid #bfbfbf", // Line between body rows
+                      // Line between body columns
+                      textAlign: "center", // Center text horizontally
+                      verticalAlign: "middle", // Center text vertically
+                    }}
+                    align="center"
+                  >
                     <>
                       <IconButton
                         onClick={() => handleDownloadAdminData(row.id)}
@@ -388,7 +534,7 @@ function AllAdmins() {
                           <FiDownloadCloud size={20} className="text-[#444]" />
                         )}
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteAdmin(row.id)}>
+                      <IconButton onClick={() => handleOpenDeleteModel(row.id)}>
                         <RiDeleteBinLine size={20} className="text-[#444]" />
                       </IconButton>
                       <IconButton onClick={() => handleOpenModel(row)}>
@@ -400,8 +546,21 @@ function AllAdmins() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  No Admins Found
+                <TableCell
+                  sx={{
+                    fontSize: "16px",
+                    color: "#333",
+                    fontWeight: "700",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                  colSpan={columns.length}
+                  align="center"
+                >
+                  {mainloading ? (
+                    <CircularProgress size={30} color="#666" />
+                  ) : (
+                    "No Admins Found"
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -410,112 +569,197 @@ function AllAdmins() {
       </TableContainer>
 
       {openModel && (
-        <div className="bg-black bg-opacity-10 absolute top-0 left-0 w-full h-full flex justify-center items-center">
-          <div className="w-[40%] mt-8 h-max py-1 bg-white rounded-md shadow-md">
-            <div className="flex justify-end">
-              <button
-                onClick={handleCloseModel}
-                className="mt-1 mr-[5px] cursor-pointer text-[1.5rem] text-white p-1 bg-black rounded-full"
-                aria-label="Close"
-              >
-                <RxCross2 />
-              </button>
-            </div>
-
-            <form
-              onSubmit={editAdmin ? handleEditSubmit : handleSubmit}
-              className="w-full flex justify-center items-start flex-col py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7"
-            >
-              <div className="w-full flex justify-center">
-                <h3 className="font-semibold text-xl">
-                  {editAdmin ? "Edit Admin" : "Create Admin"}
-                </h3>
+        <Modal open={openModel} onClose={handleCloseModel}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-60">
+            <div className="bg-white border-2 border-[#ff0000] w-full max-w-xl mx-4 rounded-[50px] shadow-lg py-10 px-9 transform transition-all">
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseModel}
+                  className=" cursor-pointer text-[1.6rem] translate-x-[9px] translate-y-[-9px] text-white p-[5px] bg-black rounded-full"
+                  aria-label="Close"
+                >
+                  <RxCross2 />
+                </button>
               </div>
-              <div className="flex justify-between items-center w-full">
-                <div className="w-[100%] space-y-10">
-                  {/* Email input */}
-                  <div className="w-[90%] mx-auto flex justify-between items-center gap-4">
-                    <div className="relative w-full">
+
+              <form
+                onSubmit={editAdmin ? handleEditSubmit : handleSubmit}
+                className="w-full flex justify-center items-start flex-col pb-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7"
+              >
+                <div className="w-full flex justify-center">
+                  <h3 className="font-semibold text-[32px] mb-5 mt-1">
+                    {editAdmin ? "Edit Admin" : "Create Admin"}
+                  </h3>
+                </div>
+                <div className="flex justify-between items-center w-full">
+                  <div className="w-[100%] space-y-10">
+                    {/* Email input */}
+                    <div className="relative z-0 mb-6 w-full group">
                       <input
-                        autoComplete="off"
-                        id="email"
-                        name="email"
                         type="email"
-                        required
-                        disabled={!!editAdmin}
-                        className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-gray-500 disabled:bg-gray-100"
-                        placeholder="Email"
+                        name="email"
+                        id="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        className="block py-2.5 px-0 font-semibold w-full text-gray-700 bg-transparent border-0 border-b-2 border-gray-500 appearance-none focus:outline-none focus:ring-0 focus:border-[#1A73E8] peer"
+                        placeholder=" "
+                        required
                       />
                       <label
                         htmlFor="email"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                        className="absolute text-gray-600 font-semibold duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-[#1A73E8] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
                       >
-                        Email
+                        Email Address
                       </label>
                     </div>
-                  </div>
 
-                  {/* Password input */}
-                  <div className="w-[90%] mx-auto flex justify-between items-center gap-4">
-                    <div className="relative w-full">
+                    {/* Password input */}
+                    <div className="relative z-0 mb-6 w-full group">
                       <input
-                        id="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
-                        type="text"
-                        required
-                        className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-gray-500"
-                        placeholder="Password"
+                        id="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className="block py-2.5 px-0 font-semibold w-full text-gray-700 bg-transparent border-0 border-b-2 border-gray-500 appearance-none focus:outline-none focus:ring-0 focus:border-[#1A73E8] peer"
+                        placeholder=" "
+                        required
                       />
                       <label
                         htmlFor="password"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                        className="absolute text-gray-600 font-semibold duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-[#1A73E8] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
                       >
                         Password
                       </label>
+                      <span
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-2 top-2 cursor-pointer text-gray-600"
+                      >
+                        {showPassword ? (
+                          <IoEyeOff size={20} />
+                        ) : (
+                          <IoEye size={20} />
+                        )}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* User Max-Limit input */}
-                  <div className="w-[90%] mx-auto flex justify-between items-center gap-4">
-                    <div className="relative w-full">
+                    {/* User Max-Limit input */}
+                    <div className="relative z-0 mb-6 w-full group">
                       <input
                         id="userMaxLimit"
                         name="userMaxLimit"
                         type="number"
                         required
-                        className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-gray-500"
-                        placeholder="Users Max Limit"
+                        className="block py-2.5 px-0 font-semibold w-full text-gray-700 bg-transparent border-0 border-b-2 border-gray-500 appearance-none focus:outline-none focus:ring-0 focus:border-[#1A73E8] peer"
+                        placeholder=""
                         value={userMaxLimit}
                         onChange={(e) => setUserMaxLimit(e.target.value)}
                       />
                       <label
                         htmlFor="userMaxLimit"
-                        className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                        className="absolute text-gray-600 font-semibold duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-[#1A73E8] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
                       >
                         Users Max Limit
                       </label>
                     </div>
+
+                    <div className="relative z-0 mb-6 w-full group">
+                      <input
+                        id="interviewUserMaxLimit"
+                        name="interviewUserMaxLimit"
+                        type="number"
+                        required
+                        className="block py-2.5 px-0 font-semibold w-full text-gray-700 bg-transparent border-0 border-b-2 border-gray-500 appearance-none focus:outline-none focus:ring-0 focus:border-[#1A73E8] peer"
+                        placeholder=""
+                        value={interviewUserMaxLimit}
+                        onChange={(e) =>
+                          setInterviewUserMaxLimit(e.target.value)
+                        }
+                      />
+                      <label
+                        htmlFor="interviewUserMaxLimit"
+                        className="absolute text-gray-600 font-semibold duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-[#1A73E8] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                      >
+                        Interview Users Max Limit
+                      </label>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {error && <p className="text-red-500 font-semibold">{error}</p>}
-              <div className="w-full text-center pt-3">
+                {error && <p className="text-red-500 font-semibold">{error}</p>}
+                <div className="w-full pt-3">
+                  <button
+                    type="submit"
+                    className="bg-[#047D16] hover:bg-[#0a5415] mx-auto w-[180px] transition-all duration-200 text-white rounded-[20px] text-[16px] font-bold py-[10px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <CircularProgress
+                        size={26}
+                        color="inherit"
+                        sx={{ margin: "0 13px 0px 13px" }}
+                      />
+                    ) : (
+                      "Submit"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {deleteOpenModel && (
+        <Modal open={deleteOpenModel} onClose={handleCloseDeleteModel}>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-60">
+            <div className="bg-white border-2 border-[#ff0000] w-full max-w-xl mx-4 rounded-[50px] shadow-lg py-10 px-9 transform transition-all">
+              <div className="flex justify-end">
                 <button
-                  type="submit"
-                  className="border bg-black text-white rounded-md px-3 py-1"
-                  disabled={loading}
+                  onClick={handleCloseDeleteModel}
+                  className=" cursor-pointer text-[1.6rem] translate-x-[9px] translate-y-[-9px] text-white p-[5px] bg-black rounded-full"
+                  aria-label="Close"
                 >
-                  {loading ? "Loading..." : "Submit"}
+                  <RxCross2 />
                 </button>
               </div>
-            </form>
+
+              <div className="w-full flex justify-center">
+                <h3 className="font-semibold text-[32px] text-[#222] mb-5 mt-1">
+                  Delete Admin
+                </h3>
+              </div>
+              <p className="font-bold text-[#333] text-[18px] text-center mb-7">
+                Are you sure you want to delete this admin ?{" "}
+              </p>
+              <div className="flex justify-between w-full">
+                <button
+                  type="submit"
+                  className="bg-[#047D16] hover:bg-[#0a5415] mx-auto w-[180px] transition-all duration-200 text-white rounded-[20px] text-[16px] font-bold py-[10px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleCloseDeleteModel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-red-700 hover:bg-red-800/90 mx-auto w-[180px] transition-all duration-200 text-white rounded-[20px] text-[16px] font-bold py-[10px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={deleteLoading}
+                  onClick={() => handleDeleteAdmin(deleteId)}
+                >
+                  {deleteLoading ? (
+                    <CircularProgress
+                      size={26}
+                      color="inherit"
+                      sx={{ margin: "0 13px 0px 13px" }}
+                    />
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );
