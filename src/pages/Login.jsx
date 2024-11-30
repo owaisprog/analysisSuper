@@ -65,9 +65,6 @@ function Login() {
           LOGIN
         </h3>
 
-        <p className="text-[20px] font-bold text-center mb-10">
-          Please enter the details to start taking the Test
-        </p>
         <div className="bg-[#f5f5f5] relative shadow-lg rounded-[50px] flex flex-col border-2 border-[#1A73E8] pt-8 pb-5 px-24 w-[700px]">
           <div className="absolute">
             <img src="" alt="" />
