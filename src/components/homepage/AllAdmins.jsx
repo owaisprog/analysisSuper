@@ -319,7 +319,7 @@ function AllAdmins() {
     "Name/Email",
     "Password",
     "Max Performers",
-    "Max Interviews",
+    "Max Interviews /month",
     "Actions",
   ];
 
@@ -669,7 +669,7 @@ function AllAdmins() {
                         htmlFor="interviewUserMaxLimit"
                         className="absolute text-gray-600 font-semibold duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-[#1A73E8] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
                       >
-                        Interview Users Max Limit
+                        Interview Users Max Limit (Monthly)
                       </label>
                     </div>
                   </div>
