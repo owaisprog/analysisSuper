@@ -5,6 +5,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { IoEye, IoEyeOff } from "react-icons/io5"; // Import eye icons
+import { GrSearch } from "react-icons/gr";
 import {
   Table,
   TableBody,
@@ -65,6 +66,7 @@ function AllAdmins() {
 
   useEffect(() => {
     const fetchAdminData = async () => {
+      setMainLoading(true);
       try {
         const response = await axios.get(
           "https://api.talentspy.ai/api/getAllAdmins"
@@ -197,20 +199,17 @@ function AllAdmins() {
   const handleDeleteAdmin = async (adminId) => {
     setDeleteLoading(true);
 
-      try {
-        await axios.delete(
-          `https://api.talentspy.ai/api/deleteAdmin/${adminId}`
-        );
-        setGetAdminData(getAdminData + 1);
-        setDeleteLoading(false);
-        handleCloseDeleteModel();
-      } catch (error) {
-        setDeleteLoading(false);
-        handleCloseDeleteModel();
+    try {
+      await axios.delete(`https://api.talentspy.ai/api/deleteAdmin/${adminId}`);
+      setGetAdminData(getAdminData + 1);
+      setDeleteLoading(false);
+      handleCloseDeleteModel();
+    } catch (error) {
+      setDeleteLoading(false);
+      handleCloseDeleteModel();
 
-        setError("Failed to delete admin. Please try again.");
-      }
-    
+      setError("Failed to delete admin. Please try again.");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -340,27 +339,17 @@ function AllAdmins() {
           Inquiries
         </button>
       </div>
-      <div className="flex rounded-[50px] translate-y-[-80px] mx-auto border w-[30%]  bg-[#1A73E8] overflow-hidden ">
+      <div className="flex relative rounded-[50px] text-white translate-y-[-80px] mx-auto border-2 w-[30%] border-[#1A73E8] overflow-hidden focus-within:text-[#1A73E8]">
         <input
           type="text"
           placeholder="Search Admins"
-          className=" focus:text-[#222] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white border-2 border-[#1A73E8] text-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3 peer"
+          className="focus:text-[#222] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3"
           value={searchTerm}
           onChange={handleSearch}
         />
-        <button
-          type="button"
-          className="flex items-center justify-center px-5 "
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 192.904 192.904"
-            width="16px"
-            className="fill-[#fff]"
-          >
-            <path d="m190.707 180.101-47.078-47.077c11.702-14.072 18.752-32.142 18.752-51.831C162.381 36.423 125.959 0 81.191 0 36.422 0 0 36.423 0 81.193c0 44.767 36.422 81.187 81.191 81.187 19.688 0 37.759-7.049 51.831-18.751l47.079 47.078a7.474 7.474 0 0 0 5.303 2.197 7.498 7.498 0 0 0 5.303-12.803zM15 81.193C15 44.694 44.693 15 81.191 15c36.497 0 66.189 29.694 66.189 66.193 0 36.496-29.692 66.187-66.189 66.187C44.693 147.38 15 117.689 15 81.193z"></path>
-          </svg>
-        </button>
+        <span className="absolute right-4 bottom-[7px]">
+          <GrSearch size={25} color="inherit" />
+        </span>
       </div>
 
       <TableContainer
