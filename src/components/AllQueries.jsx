@@ -91,11 +91,11 @@ const AllQueries = () => {
           All Admins
         </button>
       </div>
-      <div className="flex relative rounded-[50px] text-white translate-y-[-80px] mx-auto border-2 w-[30%] border-[#1A73E8] overflow-hidden focus-within:text-[#1A73E8]">
+      <div className="flex relative rounded-[50px] text-white translate-y-[-80px] mx-auto w-[30%] overflow-hidden focus-within:text-[#1A73E8]">
         <input
           type="text"
           placeholder="Search Inquiries"
-          className=" focus:text-[#222] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3"
+          className=" focus:text-[#222] border-2  border-[#1A73E8] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
