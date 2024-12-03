@@ -95,7 +95,7 @@ const AllQueries = () => {
         <input
           type="text"
           placeholder="Search Inquiries"
-          className=" focus:text-[#222] border-2  border-[#1A73E8] rounded-bl-[50px] transition-all rounded-tl-[50px] focus:bg-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3"
+          className=" focus:text-[#222] border-2  border-[#1A73E8] transition-all rounded-[50px] focus:bg-white outline-none bg-[#1A73E8] w-full placeholder:text-white text-xs font-bold px-5 py-3"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
