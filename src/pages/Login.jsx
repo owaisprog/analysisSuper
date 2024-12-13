@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios"; // Ensure axios is installed
-import { useNavigate, useParams } from "react-router-dom"; // Combined imports
+import { useNavigate } from "react-router-dom"; // Combined imports
 import Cookies from "js-cookie";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress , Snackbar , Alert } from "@mui/material";
 import { IoEye, IoEyeOff } from "react-icons/io5"; // Import eye icons
 
 
@@ -15,6 +15,8 @@ function Login() {
 
   const navigate = useNavigate(); // Initialize useNavigate
 
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("")
 
   // State to manage password visibility
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +26,9 @@ function Login() {
     setShowPassword(!showPassword);
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
 
   // Handle form submission
   const handleSubmit = async (event) => {
@@ -44,7 +49,12 @@ function Login() {
         navigate('/');
       } 
     } catch (error) {
-      setError(error.response?.data?.error || "An error occurred");
+      if (error.response.data === "Admin not found") {
+        setSnackbarMessage("User not Found");
+      } else {
+        setSnackbarMessage("Something went wrong, please try again later");
+      }
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -138,6 +148,16 @@ function Login() {
           </form>
         </div>
       </div>
+      <Snackbar
+              open={snackbarOpen}
+              onClose={handleCloseSnackbar}
+              autoHideDuration={3000}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+              <Alert onClose={handleCloseSnackbar} severity="error">
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
     </div>
   );
 }
