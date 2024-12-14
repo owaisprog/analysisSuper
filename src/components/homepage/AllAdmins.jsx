@@ -446,7 +446,7 @@ function AllAdmins() {
                         <img
                           src={row.adminInfo.Logo}
                           alt="Logo"
-                          className="w-[2.7rem] h-[2.7rem] object-cover rounded-full border border-[#bbb]"
+                          className="w-[2.7rem] h-[2.7rem] object-contain rounded-full border border-[#bbb]"
                         />
                       )}
                       <div className="flex flex-col">
