@@ -313,7 +313,7 @@ function AllAdmins() {
   };
 
   const columns = [
-    "ID ",
+    "Sr #",
     "Date",
     "Users",
     "Name/Email",
