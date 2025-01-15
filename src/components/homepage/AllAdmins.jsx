@@ -315,7 +315,7 @@ function AllAdmins() {
   const columns = [
     "Sr #",
     "Date",
-    "Users",
+    "Performers",
     "Name/Email",
     "Password",
     "Max Performers",
